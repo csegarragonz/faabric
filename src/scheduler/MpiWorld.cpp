@@ -367,6 +367,8 @@ void MpiWorld::gather(int sendRank,
     bool isInPlace = sendBuffer == recvBuffer;
 
     // If we're the root, do the gathering
+    // TODO with some engineering work we should be able to do a tree-like 
+    // gather rather than the approach we are following one (all to one)
     if (sendRank == recvRank) {
         logger->trace("MPI - gather all -> {}", recvRank);
 

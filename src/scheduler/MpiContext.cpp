@@ -36,9 +36,11 @@ void MpiContext::createWorld(const faabric::Message& msg)
 
 void MpiContext::joinWorld(const faabric::Message& msg)
 {
+    const std::shared_ptr<spdlog::logger>& logger = faabric::util::getLogger();
+
     if (!msg.ismpi()) {
-        // Not an MPI call
-        return;
+        logger->error("Attempting to join MPI world with a non-mpi message."); 
+        throw std::runtime_error("Joining world with non-mpi message.");
     }
 
     isMpi = true;
