@@ -176,6 +176,32 @@ std::string MpiWorld::getHostForRank(int rank)
     return rankHostMap[rank];
 }
 
+void MpiWorld::getCartesianRank(int rank,
+                                int* dims,
+                                int* periods,
+                                int* coords)
+{
+    if (rank > this->size - 1) {
+        throw std::runtime_error(fmt::format(
+          "Rank {} bigger than world size {}", rank, this->size));
+    }
+
+    // Compute the corresponding rank in a 2-dim grid given the original process
+    // rank.
+    // Note - this operation, when restricted to 2dims is quivalent to:
+    // coords = {rank / sideLength, rank % sideLength}
+    int origRank = rank;
+    int sideLength = static_cast<int>(std::floor(std::sqrt(this->size)));
+    int nprocs = sideLength * sideLength;
+    for (uint8_t i = 0; i < MPI_CART_MAX_DIMENSIONS; i++) {
+        nprocs /= sideLength;
+        dims[i] = sideLength;
+        periods[i] = 0;
+        coords[i] = origRank > nprocs ? MPI_UNDEFINED : rank / nprocs;
+        rank %= nprocs;
+    }
+}
+
 int MpiWorld::isend(int sendRank,
                     int recvRank,
                     const uint8_t* buffer,
